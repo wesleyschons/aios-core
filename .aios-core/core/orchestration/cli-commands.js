@@ -143,7 +143,13 @@ async function orchestrateDryRun(storyId, options) {
   const epicConfig = orchestrator.constructor.EPIC_CONFIG;
   const startEpic = options.epic || 3;
 
-  for (const epicNum of [3, 4, 6, 7]) {
+  // Use dynamic epic list from config (excludes onDemand epics like Epic 5)
+  const epicNums = Object.keys(epicConfig)
+    .map(Number)
+    .filter((num) => !epicConfig[num].onDemand)
+    .sort((a, b) => a - b);
+
+  for (const epicNum of epicNums) {
     const config = epicConfig[epicNum];
     if (epicNum < startEpic) {
       console.log(chalk.gray(`  ⏭️  Epic ${epicNum}: ${config.name} (skipped)`));

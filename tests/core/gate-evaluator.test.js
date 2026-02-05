@@ -57,10 +57,7 @@ describe('Gate Evaluator (Story 0.6)', () => {
       expect(DEFAULT_GATE_CONFIG.epic4_to_epic6.requireTests).toBe(true);
     });
 
-    it('should have config for epic6_to_epic7', () => {
-      expect(DEFAULT_GATE_CONFIG.epic6_to_epic7).toBeDefined();
-      expect(DEFAULT_GATE_CONFIG.epic6_to_epic7.allowMinorIssues).toBe(true);
-    });
+    // Note: epic6_to_epic7 config removed with Epic 7 revert (commits 51df718, 75cbca1)
   });
 
   describe('Constructor', () => {
