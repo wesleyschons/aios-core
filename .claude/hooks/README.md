@@ -30,7 +30,7 @@ PreCompact Hooks
 Impede leitura parcial (`limit`/`offset`) em arquivos protegidos:
 - `.claude/CLAUDE.md`
 - `.claude/rules/*.md`
-- `.aios-core/development/agents/*.md`
+- `.aiox-core/development/agents/*.md`
 - `supabase/docs/SCHEMA.md`
 - `package.json`, `tsconfig.json`
 - `app/components/ui/icons/icon-map.ts`
@@ -177,7 +177,7 @@ Hooks são registrados em `.claude/settings.json` (framework, commitado) ou `.cl
 }
 ```
 
-O installer (`ide-config-generator.js`) usa `HOOK_EVENT_MAP` para registrar automaticamente cada hook no evento correto durante `npx aios-core install`.
+O installer (`ide-config-generator.js`) usa `HOOK_EVENT_MAP` para registrar automaticamente cada hook no evento correto durante `npx aiox-core install`.
 
 ## Manutenção
 

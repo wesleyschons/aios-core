@@ -67,7 +67,7 @@ function createMockProject(opts = {}) {
     fs.mkdirSync(path.join(tmpDir, '.synapse', 'sessions'), { recursive: true });
   }
 
-  const engineDir = path.join(tmpDir, '.aios-core', 'core', 'synapse');
+  const engineDir = path.join(tmpDir, '.aiox-core', 'core', 'synapse');
   fs.mkdirSync(engineDir, { recursive: true });
 
   const engineCode = opts.engineCode || `
@@ -141,6 +141,7 @@ describe('SYNAPSE Hook Entry Point (synapse-engine.cjs)', () => {
 
       const output = JSON.parse(stdout);
       expect(output).toHaveProperty('hookSpecificOutput');
+      expect(output.hookSpecificOutput).toHaveProperty('hookEventName', 'UserPromptSubmit');
       expect(output.hookSpecificOutput).toHaveProperty('additionalContext');
     });
 
@@ -209,10 +210,11 @@ describe('SYNAPSE Hook Entry Point (synapse-engine.cjs)', () => {
       expect(stdout).toBe('');
     });
 
-    test('logs error to stderr with [synapse-hook] prefix on invalid JSON', async () => {
-      const { stderr } = await runHook('not valid json');
+    test('exits silently without stderr on invalid JSON (silent exit policy)', async () => {
+      const { stderr, code } = await runHook('not valid json');
 
-      expect(stderr).toContain('[synapse-hook]');
+      expect(code).toBe(0);
+      expect(stderr).toBe('');
     });
 
     test('exits silently when engine.process() throws', async () => {
@@ -230,7 +232,7 @@ describe('SYNAPSE Hook Entry Point (synapse-engine.cjs)', () => {
 
       expect(code).toBe(0);
       expect(stdout).toBe('');
-      expect(stderr).toContain('[synapse-hook]');
+      expect(stderr).toBe('');
     });
 
     test('exits silently when SynapseEngine constructor throws', async () => {
@@ -273,15 +275,16 @@ describe('SYNAPSE Hook Entry Point (synapse-engine.cjs)', () => {
   // ==========================================================================
 
   describe('output format', () => {
-    test('output matches { hookSpecificOutput: { additionalContext: string } }', async () => {
+    test('output matches { hookSpecificOutput: { hookEventName, additionalContext } }', async () => {
       tmpDir = createMockProject();
       const input = buildInput(tmpDir);
       const { stdout } = await runHook(input);
 
       const output = JSON.parse(stdout);
+      expect(output.hookSpecificOutput.hookEventName).toBe('UserPromptSubmit');
       expect(typeof output.hookSpecificOutput.additionalContext).toBe('string');
       expect(Object.keys(output)).toEqual(['hookSpecificOutput']);
-      expect(Object.keys(output.hookSpecificOutput)).toEqual(['additionalContext']);
+      expect(Object.keys(output.hookSpecificOutput)).toEqual(['hookEventName', 'additionalContext']);
     });
 
     test('additionalContext is empty string when engine returns no xml', async () => {
@@ -628,9 +631,8 @@ describe('SYNAPSE Hook Entry Point (synapse-engine.cjs)', () => {
         await new Promise((r) => setTimeout(r, 50));
 
         expect(exitSpy).toHaveBeenCalledWith(0);
-        expect(errorSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[synapse-hook]'),
-        );
+        // Silent exit policy: no stderr output (prevents "hook error" in Claude Code UI)
+        expect(errorSpy).not.toHaveBeenCalled();
       } finally {
         // Restore JEST_WORKER_ID before restoring other mocks
         if (savedWorkerId !== undefined) {
@@ -664,10 +666,10 @@ describe('SYNAPSE Hook Entry Point (synapse-engine.cjs)', () => {
       expect(content).toContain('.synapse/cache/');
     });
 
-    test('.gitignore has exception for synapse-engine.cjs hook', () => {
+    test('.gitignore has exception for hooks directory', () => {
       const gitignorePath = path.resolve(__dirname, '../../.gitignore');
       const content = fs.readFileSync(gitignorePath, 'utf8');
-      expect(content).toContain('!.claude/hooks/synapse-engine.cjs');
+      expect(content).toContain('!.claude/hooks/');
     });
   });
 });

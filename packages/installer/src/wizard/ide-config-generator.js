@@ -75,7 +75,7 @@ async function backupFile(filePath) {
  * Prompt user for action when file exists
  * @param {string} filePath - Path to existing file
  * @param {Object} options - Options
- * @param {string} options.projectType - 'BROWNFIELD' | 'GREENFIELD' | 'EXISTING_AIOS'
+ * @param {string} options.projectType - 'BROWNFIELD' | 'GREENFIELD' | 'EXISTING_AIOX'
  * @param {boolean} options.forceMerge - If true, auto-select merge without prompting
  * @param {boolean} options.noMerge - If true, don't offer merge option
  * @returns {Promise<string>} Action: 'merge', 'overwrite', 'skip', or 'backup'
@@ -83,7 +83,7 @@ async function backupFile(filePath) {
 async function promptFileExists(filePath, options = {}) {
   const { projectType, forceMerge, noMerge } = options;
   const canMerge = !noMerge && hasMergeStrategy(filePath);
-  const isBrownfield = projectType === 'BROWNFIELD' || projectType === 'EXISTING_AIOS';
+  const isBrownfield = projectType === 'BROWNFIELD' || projectType === 'EXISTING_AIOX';
 
   // If force merge is set and merge is available, return merge directly
   if (forceMerge && canMerge) {
@@ -201,12 +201,12 @@ function generateTemplateVariables(wizardState) {
     projectName,
     projectType: wizardState.projectType || 'greenfield',
     timestamp,
-    aiosVersion: '2.1.0', // From package.json in real implementation
+    aioxVersion: '2.1.0', // From package.json in real implementation
   };
 }
 
 /**
- * Copy agent files from .aios-core/development/agents to IDE-specific agent folder
+ * Copy agent files from .aiox-core/development/agents to IDE-specific agent folder
  * v4 modular structure: agents are now in development/ module
  * @param {string} projectRoot - Project root directory
  * @param {string} agentFolder - Target folder for agent files (IDE-specific)
@@ -215,7 +215,7 @@ function generateTemplateVariables(wizardState) {
  */
 async function copyAgentFiles(projectRoot, agentFolder, ideConfig = null) {
   // v4: Agents are in development/agents/ (not root agents/)
-  const sourceDir = path.join(__dirname, '..', '..', '..', '..', '.aios-core', 'development', 'agents');
+  const sourceDir = path.join(__dirname, '..', '..', '..', '..', '.aiox-core', 'development', 'agents');
   const targetDir = path.join(projectRoot, agentFolder);
   const copiedFiles = [];
 
@@ -256,8 +256,8 @@ async function copyAgentFiles(projectRoot, agentFolder, ideConfig = null) {
       } else if (ideConfig && ideConfig.agentFolder && ideConfig.agentFolder.includes('.github')) {
         // GitHub Copilot: apply transformer for .agent.md format with YAML frontmatter
         try {
-          const agentParser = require('../../../../.aios-core/infrastructure/scripts/ide-sync/agent-parser');
-          const copilotTransformer = require('../../../../.aios-core/infrastructure/scripts/ide-sync/transformers/github-copilot');
+          const agentParser = require('../../../../.aiox-core/infrastructure/scripts/ide-sync/agent-parser');
+          const copilotTransformer = require('../../../../.aiox-core/infrastructure/scripts/ide-sync/transformers/github-copilot');
           const agentData = agentParser.parseAgentFile(sourcePath);
           const content = copilotTransformer.transform(agentData);
           const filename = copilotTransformer.getFilename(agentData);
@@ -363,7 +363,7 @@ async function createAntiGravityConfigJson(projectRoot, ideConfig) {
     agents: {
       enabled: true,
       directory: ideConfig.specialConfig.agentsFolder,
-      default: 'aios-master',
+      default: 'aiox-master',
     },
     rules: {
       enabled: true,
@@ -378,8 +378,8 @@ async function createAntiGravityConfigJson(projectRoot, ideConfig) {
       stories: 'docs/stories',
       prd: 'docs/prd',
       architecture: 'docs/architecture',
-      tasks: '.aios-core/tasks',
-      workflows: '.aios-core/workflows',
+      tasks: '.aiox-core/tasks',
+      workflows: '.aiox-core/workflows',
     },
   };
 
@@ -465,8 +465,8 @@ async function generateIDEConfigs(selectedIDEs, wizardState, options = {}) {
           spinner.start(`Configuring ${ide.name}...`);
         }
 
-        // Load template from .aios-core/product/templates/
-        const templatePath = path.join(__dirname, '..', '..', '..', '..', '.aios-core', 'product', 'templates', ide.template);
+        // Load template from .aiox-core/product/templates/
+        const templatePath = path.join(__dirname, '..', '..', '..', '..', '.aiox-core', 'product', 'templates', ide.template);
 
         if (!await fs.pathExists(templatePath)) {
           throw new Error(`Template file not found: ${ide.template}`);
@@ -574,17 +574,17 @@ async function generateIDEConfigs(selectedIDEs, wizardState, options = {}) {
           const settingsFile = await createGeminiSettings(projectRoot);
           if (settingsFile) {
             createdFiles.push(settingsFile);
-            spinner.succeed('Created .gemini/settings.json with AIOS hooks');
+            spinner.succeed('Created .gemini/settings.json with AIOX hooks');
           } else {
             spinner.info('Skipped .gemini/settings.json (no hooks to register)');
           }
 
-          spinner.start('Linking Gemini AIOS extension...');
+          spinner.start('Linking Gemini AIOX extension...');
           const extensionResult = await linkGeminiExtension(projectRoot);
           if (extensionResult.status === 'linked') {
-            spinner.succeed('Gemini extension "aios" linked and enabled');
+            spinner.succeed('Gemini extension "aiox" linked and enabled');
           } else if (extensionResult.status === 'already-linked') {
-            spinner.succeed('Gemini extension "aios" already linked');
+            spinner.succeed('Gemini extension "aiox" already linked');
           } else {
             spinner.info(`Skipped Gemini extension linking (${extensionResult.reason})`);
           }
@@ -647,7 +647,7 @@ function showSuccessSummary(result) {
 
   console.log('\n📋 Next Steps:');
   console.log('  1. Open your project in your selected IDE(s)');
-  console.log('  2. The IDE should automatically recognize AIOS configuration');
+  console.log('  2. The IDE should automatically recognize AIOX configuration');
   console.log('  3. Try activating an agent with @agent-name');
   console.log('  4. Use * commands to interact with agents\n');
 }
@@ -836,12 +836,12 @@ async function createClaudeSettingsLocal(projectRoot) {
 }
 
 /**
- * Copy .aios-core/hooks/gemini folder into .gemini/hooks during installation
+ * Copy .aiox-core/hooks/gemini folder into .gemini/hooks during installation
  * @param {string} projectRoot - Project root directory
  * @returns {Promise<string[]>} List of copied files
  */
 async function copyGeminiHooksFolder(projectRoot) {
-  const sourceDir = path.join(__dirname, '..', '..', '..', '..', '.aios-core', 'hooks', 'gemini');
+  const sourceDir = path.join(__dirname, '..', '..', '..', '..', '.aiox-core', 'hooks', 'gemini');
   const targetDir = path.join(projectRoot, '.gemini', 'hooks');
   const copiedFiles = [];
 
@@ -872,7 +872,7 @@ async function copyGeminiHooksFolder(projectRoot) {
 }
 
 /**
- * Create/merge .gemini/settings.json and register AIOS hooks as enabled.
+ * Create/merge .gemini/settings.json and register AIOX hooks as enabled.
  * @param {string} projectRoot - Project root directory
  * @returns {Promise<string|null>} Path to settings file or null if skipped
  */
@@ -889,7 +889,7 @@ async function createGeminiSettings(projectRoot) {
       event: 'SessionStart',
       matcher: '*',
       hook: {
-        name: 'aios-session-init',
+        name: 'aiox-session-init',
         type: 'command',
         command: 'node ".gemini/hooks/session-start.js"',
         timeout: 5000,
@@ -900,7 +900,7 @@ async function createGeminiSettings(projectRoot) {
       event: 'BeforeAgent',
       matcher: '*',
       hook: {
-        name: 'aios-context-inject',
+        name: 'aiox-context-inject',
         type: 'command',
         command: 'node ".gemini/hooks/before-agent.js"',
         timeout: 3000,
@@ -911,7 +911,7 @@ async function createGeminiSettings(projectRoot) {
       event: 'BeforeTool',
       matcher: 'write_file|replace|shell|bash|execute',
       hook: {
-        name: 'aios-security-check',
+        name: 'aiox-security-check',
         type: 'command',
         command: 'node ".gemini/hooks/before-tool.js"',
         timeout: 2000,
@@ -922,7 +922,7 @@ async function createGeminiSettings(projectRoot) {
       event: 'AfterTool',
       matcher: '*',
       hook: {
-        name: 'aios-audit-log',
+        name: 'aiox-audit-log',
         type: 'command',
         command: 'node ".gemini/hooks/after-tool.js"',
         timeout: 2000,
@@ -933,7 +933,7 @@ async function createGeminiSettings(projectRoot) {
       event: 'SessionEnd',
       matcher: '*',
       hook: {
-        name: 'aios-session-persist',
+        name: 'aiox-session-persist',
         type: 'command',
         command: 'node ".gemini/hooks/session-end.js"',
         timeout: 5000,
@@ -982,13 +982,13 @@ async function createGeminiSettings(projectRoot) {
 }
 
 /**
- * Best-effort Gemini extension linking for AIOS project.
+ * Best-effort Gemini extension linking for AIOX project.
  * Does not fail installation when auth/CLI is unavailable.
  * @param {string} projectRoot
  * @returns {Promise<{status: 'linked'|'already-linked'|'skipped', reason?: string}>}
  */
 async function linkGeminiExtension(projectRoot) {
-  const extensionDir = path.join(projectRoot, 'packages', 'gemini-aios-extension');
+  const extensionDir = path.join(projectRoot, 'packages', 'gemini-aiox-extension');
   const manifestPath = path.join(extensionDir, 'gemini-extension.json');
   const legacyManifestPath = path.join(extensionDir, 'extension.json');
 
@@ -1024,7 +1024,7 @@ async function linkGeminiExtension(projectRoot) {
 
   // When already installed, perform idempotent relink.
   if (output.includes('already installed')) {
-    const uninstall = spawnSync('gemini', ['extensions', 'uninstall', 'aios'], {
+    const uninstall = spawnSync('gemini', ['extensions', 'uninstall', 'aiox'], {
       cwd: projectRoot,
       encoding: 'utf8',
       timeout: 30000,
@@ -1117,15 +1117,15 @@ async function copyExtraCommandFiles(projectRoot, _sourceRoot) {
   // Squad commands (cohort-squad/, design-system/, squad-creator-pro/, etc.)
   // are private and must NOT be copied to installed projects.
   const DISTRIBUTABLE_ENTRIES = new Set([
-    'AIOS',       // Core agent/script commands (agents/ sub-dir excluded below)
+    'AIOX',       // Core agent/script commands (agents/ sub-dir excluded below)
     'synapse',    // SYNAPSE context engine commands
     'greet.md',   // Greeting skill
   ]);
 
-  // Within AIOS/, these sub-dirs are excluded (private or handled separately)
-  const AIOS_EXCLUDED = new Set([
-    'AIOS/agents',   // Already handled by copyAgentFiles()
-    'AIOS/stories',  // Project-specific story skills, not distributable
+  // Within AIOX/, these sub-dirs are excluded (private or handled separately)
+  const AIOX_EXCLUDED = new Set([
+    'AIOX/agents',   // Already handled by copyAgentFiles()
+    'AIOX/stories',  // Project-specific story skills, not distributable
   ]);
 
   await fs.ensureDir(targetDir);
@@ -1143,8 +1143,8 @@ async function copyExtraCommandFiles(projectRoot, _sourceRoot) {
         continue;
       }
 
-      // Within AIOS/, skip excluded sub-directories
-      if (AIOS_EXCLUDED.has(entryRelative) || [...AIOS_EXCLUDED].some(ex => entryRelative.startsWith(ex + '/'))) {
+      // Within AIOX/, skip excluded sub-directories
+      if (AIOX_EXCLUDED.has(entryRelative) || [...AIOX_EXCLUDED].some(ex => entryRelative.startsWith(ex + '/'))) {
         continue;
       }
 

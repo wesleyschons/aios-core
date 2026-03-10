@@ -4,7 +4,7 @@
  *
  * Registered as PreCompact event — fires before context compaction.
  * Reads JSON from stdin (Claude Code hook protocol), delegates to
- * the unified hook runner in aios-core.
+ * the unified hook runner in aiox-core.
  *
  * Stdin format (PreCompact):
  * {
@@ -15,7 +15,7 @@
  *   "trigger": "auto" | "manual"
  * }
  *
- * @see .aios-core/hooks/unified/runners/precompact-runner.js
+ * @see .aiox-core/hooks/unified/runners/precompact-runner.js
  * @see Story MIS-3 - Session Digest (PreCompact Hook)
  * @see Story MIS-3.1 - Fix Session-Digest Hook Registration
  */
@@ -57,7 +57,7 @@ async function main() {
   // Same pattern as synapse-engine.cjs — robust against incorrect cwd
   const runnerPath = path.join(
     PROJECT_ROOT,
-    '.aios-core',
+    '.aiox-core',
     'hooks',
     'unified',
     'runners',
@@ -80,24 +80,24 @@ async function main() {
   await onPreCompact(context);
 }
 
-/**
- * Safely exit the process — no-op inside Jest workers to prevent worker crashes.
- * @param {number} code - Exit code
- */
-function safeExit(code) {
-  if (process.env.JEST_WORKER_ID) return;
-  process.exit(code);
-}
-
 /** Entry point runner — sets safety timeout and executes main(). */
 function run() {
-  const timer = setTimeout(() => safeExit(0), HOOK_TIMEOUT_MS);
+  // Safety timeout — force exit only as last resort (no stdout to flush at this point).
+  const timer = setTimeout(() => {
+    process.exit(0);
+  }, HOOK_TIMEOUT_MS);
   timer.unref();
+
   main()
-    .then(() => safeExit(0))
-    .catch((err) => {
-      console.error(`[precompact-hook] ${err.message}`);
-      safeExit(0); // Never block the compact operation
+    .then(() => {
+      clearTimeout(timer);
+      // Let event loop drain naturally — process.exitCode allows stdout flush
+      process.exitCode = 0;
+    })
+    .catch(() => {
+      clearTimeout(timer);
+      // Silent exit — never write to stderr (triggers "hook error" in Claude Code)
+      process.exitCode = 0;
     });
 }
 
