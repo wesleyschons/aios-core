@@ -23,6 +23,7 @@ const { createGenerateCommand } = require('./commands/generate');
 const { createMetricsCommand } = require('./commands/metrics');
 const { createConfigCommand } = require('./commands/config');
 const { createProCommand } = require('./commands/pro');
+const { createMemoryCommand } = require('./commands/memory');
 
 // Read package.json for version
 const packageJsonPath = path.join(__dirname, '..', '..', 'package.json');
@@ -123,6 +124,9 @@ Examples:
 
   // Add pro command (Story PRO-6)
   program.addCommand(createProCommand());
+
+  // Add memory command (Memory Module)
+  program.addCommand(createMemoryCommand());
 
   return program;
 }

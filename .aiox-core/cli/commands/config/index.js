@@ -550,6 +550,126 @@ function initLocalAction() {
 }
 
 // ---------------------------------------------------------------------------
+// aiox config memory
+// ---------------------------------------------------------------------------
+
+function memoryAction(options) {
+  const root = getProjectRoot();
+  const memoryConfigPath = path.join(root, '.aiox-core', 'config', 'memory.yaml');
+
+  // Show mode
+  if (options.show) {
+    if (!fs.existsSync(memoryConfigPath)) {
+      console.log('No memory configuration found. Run `aiox config memory --provider local` to create one.');
+      return;
+    }
+    const content = fs.readFileSync(memoryConfigPath, 'utf8');
+    console.log(content);
+    return;
+  }
+
+  // Interactive mode (no --provider flag)
+  if (!options.provider) {
+    if (fs.existsSync(memoryConfigPath)) {
+      console.log('Current memory configuration:');
+      console.log(fs.readFileSync(memoryConfigPath, 'utf8'));
+      console.log('---');
+      console.log('To change: aiox config memory --provider <local|obsidian|hybrid>');
+      console.log('For Obsidian: aiox config memory --provider obsidian --vault ~/Obsidian/MyVault');
+      console.log('For Hybrid:  aiox config memory --provider hybrid --vault ~/Obsidian/MyVault');
+    } else {
+      console.log('Usage:');
+      console.log('  aiox config memory --provider local');
+      console.log('  aiox config memory --provider obsidian --vault ~/Obsidian/MyVault');
+      console.log('  aiox config memory --provider hybrid --vault ~/Obsidian/MyVault');
+      console.log('  aiox config memory --show');
+    }
+    return;
+  }
+
+  // Validate provider
+  const validProviders = ['local', 'obsidian', 'hybrid'];
+  if (!validProviders.includes(options.provider)) {
+    console.error(`Invalid provider "${options.provider}". Must be one of: ${validProviders.join(', ')}`);
+    process.exit(1);
+  }
+
+  // Require vault path for obsidian/hybrid
+  if ((options.provider === 'obsidian' || options.provider === 'hybrid') && !options.vault) {
+    console.error(`Provider "${options.provider}" requires --vault <path>`);
+    console.error(`Example: aiox config memory --provider ${options.provider} --vault ~/Obsidian/SynkraVault`);
+    process.exit(1);
+  }
+
+  // Generate config
+  try {
+    const os = require('os');
+    const vaultPath = options.vault ? options.vault.replace('~', os.homedir()) : undefined;
+
+    const configLines = [
+      '# SynkraAIOX Memory Module Configuration',
+      '# Provider: "local" (default) | "obsidian" | "hybrid"',
+      '',
+      'memory:',
+      `  provider: ${options.provider}`,
+      '',
+      '  local:',
+      '    base_path: "./"',
+    ];
+
+    if (options.provider === 'obsidian' || options.provider === 'hybrid') {
+      configLines.push(
+        '',
+        '  obsidian:',
+        `    vault_path: "${vaultPath}"`,
+        `    mcp_server: "obsidian-mcp"`,
+        `    sync_mode: ${options.syncMode || 'write-through'}`,
+        `    project_folder: "projects/{{project_id}}"`,
+      );
+    }
+
+    if (options.provider === 'hybrid') {
+      configLines.push(
+        '',
+        '  hybrid:',
+        '    local_for: [agents, tasks, workflows]',
+        '    obsidian_for: [sessions, decisions, handoffs, components, memory]',
+        '    sync_interval: "on_session_end"',
+      );
+    }
+
+    configLines.push('');
+    const content = configLines.join('\n');
+
+    // Ensure directory exists
+    const configDir = path.dirname(memoryConfigPath);
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+
+    fs.writeFileSync(memoryConfigPath, content, 'utf8');
+
+    console.log(`Memory configuration updated: provider=${options.provider}`);
+    if (vaultPath) {
+      console.log(`Vault path: ${vaultPath}`);
+    }
+    console.log(`Config: ${memoryConfigPath}`);
+
+    // Remind about MCP setup for Obsidian
+    if (options.provider === 'obsidian' || options.provider === 'hybrid') {
+      console.log('');
+      console.log('Next steps:');
+      console.log('  1. Ensure your Obsidian vault exists at the configured path');
+      console.log('  2. Install the Obsidian MCP server: npx obsidian-mcp-server');
+      console.log('  3. Add it to ~/.claude/mcp.json (or ask @devops *add-mcp obsidian)');
+    }
+  } catch (error) {
+    console.error(`Failed to write memory config: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Command builder
 // ---------------------------------------------------------------------------
 
@@ -598,6 +718,16 @@ function createConfigCommand() {
     .command('init-local')
     .description('Create local-config.yaml from template')
     .action(initLocalAction);
+
+  // aiox config memory
+  configCmd
+    .command('memory')
+    .description('Configure memory module (provider, vault path)')
+    .option('-p, --provider <provider>', 'Memory provider: local, obsidian, hybrid')
+    .option('-v, --vault <path>', 'Obsidian vault path')
+    .option('--sync-mode <mode>', 'Sync mode: write-through, write-back, read-only', 'write-through')
+    .option('--show', 'Show current memory configuration')
+    .action(memoryAction);
 
   return configCmd;
 }

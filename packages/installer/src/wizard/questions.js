@@ -278,6 +278,60 @@ function getTechPresetQuestion() {
 }
 
 /**
+ * Get memory provider selection question
+ * Asks user how they want to persist long-term memory
+ *
+ * @returns {Object} Inquirer question object
+ */
+function getMemoryProviderQuestion() {
+  return {
+    type: 'list',
+    name: 'memoryProvider',
+    message: colors.primary(t('memoryProviderQuestion')),
+    choices: [
+      {
+        name: colors.highlight(t('memoryLocal')) + colors.dim(` (${t('memoryLocalDesc')})`),
+        value: 'local',
+      },
+      {
+        name: colors.highlight(t('memoryObsidian')) + colors.dim(` (${t('memoryObsidianDesc')})`),
+        value: 'obsidian',
+      },
+      {
+        name: colors.highlight(t('memoryHybrid')) + colors.dim(` (${t('memoryHybridDesc')})`),
+        value: 'hybrid',
+      },
+    ],
+    default: 0,
+  };
+}
+
+/**
+ * Get Obsidian vault path question (conditional)
+ * Only shown when memoryProvider is "obsidian" or "hybrid"
+ *
+ * @returns {Object} Inquirer question object
+ */
+function getObsidianVaultPathQuestion() {
+  const os = require('os');
+  const defaultPath = `${os.homedir()}/Obsidian/SynkraVault`;
+
+  return {
+    type: 'input',
+    name: 'obsidianVaultPath',
+    message: colors.primary(t('memoryVaultPathQuestion')),
+    default: defaultPath,
+    validate: (input) => {
+      // Allow any path - it can be created later
+      if (!input || input.trim() === '') {
+        return t('memoryVaultPathInvalid');
+      }
+      return true;
+    },
+  };
+}
+
+/**
  * Build complete question sequence
  * Allows conditional questions based on previous answers
  *
@@ -350,6 +404,8 @@ module.exports = {
   getTechPresetQuestion,
   getEnvironmentQuestions,
   getPackageManagerQuestion,
+  getMemoryProviderQuestion,
+  getObsidianVaultPathQuestion,
   buildQuestionSequence,
   getQuestionById,
 };

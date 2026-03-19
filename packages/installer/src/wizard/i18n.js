@@ -162,6 +162,19 @@ const TRANSLATIONS = {
     proScaffolderNotFound: 'Pro scaffolder module not found.',
     proNpmInitFailed: 'npm init failed: {message}',
     proNpmInstallFailed: 'npm install @aiox-fullstack/pro failed: {message}. Try manually: npm install @aiox-fullstack/pro',
+
+    // Memory Module
+    memoryProviderQuestion: 'How should AIOX persist long-term memory?',
+    memoryLocal: 'Local filesystem',
+    memoryLocalDesc: 'default, zero config',
+    memoryObsidian: 'Obsidian vault',
+    memoryObsidianDesc: 'Second Brain with graph view',
+    memoryHybrid: 'Hybrid',
+    memoryHybridDesc: 'local for runtime, Obsidian for persistence',
+    memoryVaultPathQuestion: 'Path to your Obsidian vault:',
+    memoryVaultPathInvalid: 'Directory not found. Create it first or check the path.',
+    memoryConfigured: 'Memory module configured',
+    memorySkipped: 'Using existing memory configuration',
   },
 
   pt: {
@@ -320,6 +333,19 @@ const TRANSLATIONS = {
     proScaffolderNotFound: 'Módulo scaffolder Pro não encontrado.',
     proNpmInitFailed: 'npm init falhou: {message}',
     proNpmInstallFailed: 'npm install @aiox-fullstack/pro falhou: {message}. Tente manualmente: npm install @aiox-fullstack/pro',
+
+    // Memory Module
+    memoryProviderQuestion: 'Como o AIOX deve persistir a memoria de longo prazo?',
+    memoryLocal: 'Filesystem local',
+    memoryLocalDesc: 'padrao, zero configuracao',
+    memoryObsidian: 'Obsidian vault',
+    memoryObsidianDesc: 'Second Brain com graph view',
+    memoryHybrid: 'Hibrido',
+    memoryHybridDesc: 'local para runtime, Obsidian para persistencia',
+    memoryVaultPathQuestion: 'Caminho do seu vault Obsidian:',
+    memoryVaultPathInvalid: 'Diretorio nao encontrado. Crie-o primeiro ou verifique o caminho.',
+    memoryConfigured: 'Modulo de memoria configurado',
+    memorySkipped: 'Usando configuracao de memoria existente',
   },
 
   es: {
@@ -477,6 +503,19 @@ const TRANSLATIONS = {
     proScaffolderNotFound: 'Módulo scaffolder Pro no encontrado.',
     proNpmInitFailed: 'npm init falló: {message}',
     proNpmInstallFailed: 'npm install @aiox-fullstack/pro falló: {message}. Intente manualmente: npm install @aiox-fullstack/pro',
+
+    // Memory Module
+    memoryProviderQuestion: 'Como debe AIOX persistir la memoria a largo plazo?',
+    memoryLocal: 'Sistema de archivos local',
+    memoryLocalDesc: 'predeterminado, sin configuracion',
+    memoryObsidian: 'Obsidian vault',
+    memoryObsidianDesc: 'Second Brain con graph view',
+    memoryHybrid: 'Hibrido',
+    memoryHybridDesc: 'local para runtime, Obsidian para persistencia',
+    memoryVaultPathQuestion: 'Ruta a su vault de Obsidian:',
+    memoryVaultPathInvalid: 'Directorio no encontrado. Creelo primero o verifique la ruta.',
+    memoryConfigured: 'Modulo de memoria configurado',
+    memorySkipped: 'Usando configuracion de memoria existente',
   },
 };
 

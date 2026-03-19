@@ -18,6 +18,8 @@ const {
   getProjectTypeQuestion,
   getIDEQuestions,
   getTechPresetQuestion,
+  getMemoryProviderQuestion,
+  getObsidianVaultPathQuestion,
 } = require('./questions');
 const { setLanguage, t } = require('./i18n');
 const yaml = require('js-yaml');
@@ -306,6 +308,7 @@ async function runWizard(options = {}) {
         getProjectTypeQuestion(),
         ...getIDEQuestions(),
         ...getTechPresetQuestion(),
+        getMemoryProviderQuestion(),
       ];
 
       // Performance tracking (AC: < 100ms per question)
@@ -314,8 +317,14 @@ async function runWizard(options = {}) {
       // Run wizard with remaining questions
       const remainingAnswers = await inquirer.prompt(remainingQuestions);
 
+      // Phase 2.5: Conditional — ask vault path if obsidian or hybrid
+      let memoryAnswers = {};
+      if (remainingAnswers.memoryProvider === 'obsidian' || remainingAnswers.memoryProvider === 'hybrid') {
+        memoryAnswers = await inquirer.prompt([getObsidianVaultPathQuestion()]);
+      }
+
       // Merge all answers (including user profile from Story 10.2)
-      answers = { ...languageAnswer, ...userProfileAnswer, ...remainingAnswers };
+      answers = { ...languageAnswer, ...userProfileAnswer, ...remainingAnswers, ...memoryAnswers };
 
       // Log performance metrics
       const duration = Date.now() - startTime;
@@ -653,6 +662,24 @@ async function runWizard(options = {}) {
         console.log('  - .aiox-core/core-config.yaml created');
         if (envResult.gitignoreUpdated) {
           console.log('  - .gitignore updated');
+        }
+      }
+
+      // Memory Module Configuration
+      if (answers.memoryProvider) {
+        try {
+          const { generateMemoryConfig } = require('../config/templates/memory-config-template');
+          const memoryYaml = generateMemoryConfig({
+            provider: answers.memoryProvider,
+            vaultPath: answers.obsidianVaultPath,
+          });
+          const memoryConfigDir = path.join(process.cwd(), '.aiox-core', 'config');
+          const memoryConfigPath = path.join(memoryConfigDir, 'memory.yaml');
+          fse.ensureDirSync(memoryConfigDir);
+          fse.writeFileSync(memoryConfigPath, memoryYaml, 'utf8');
+          console.log(`  - ${t('memoryConfigured')}: provider=${answers.memoryProvider}`);
+        } catch (memErr) {
+          console.warn(`  - Memory config generation failed: ${memErr.message}`);
         }
       }
 

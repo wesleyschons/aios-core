@@ -1,0 +1,19 @@
+# SynkraAIOX Memory Module Configuration
+# Provider: "local" (default) | "obsidian" | "hybrid"
+
+memory:
+  provider: hybrid
+
+  local:
+    base_path: "./"
+
+  obsidian:
+    vault_path: "/Users/wesleyschons/Library/Mobile Documents/iCloud~md~obsidian/Documents/DevMind"
+    mcp_server: "obsidian-mcp-tools"
+    sync_mode: write-through
+    project_folder: "projects/{{project_id}}"
+
+  hybrid:
+    local_for: [agents, tasks, workflows, squads]
+    obsidian_for: [sessions, decisions, handoffs, components, memory]
+    sync_interval: "on_session_end"
